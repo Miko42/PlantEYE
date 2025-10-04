@@ -36,6 +36,10 @@ import mp.apk.viewmodel.LibraryViewModel
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.BlendMode
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.sp
@@ -114,50 +118,34 @@ fun MapMiniature(navController: NavController) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .height(200.dp) // Ustaw wysokość prostokąta
+            .height(200.dp)
             .padding(vertical = 16.dp)
             .clickable {
                 navController.navigate("map")
             },
-        shape = RoundedCornerShape(12.dp), // Zaokrąglone rogi prostokąta
+        shape = RoundedCornerShape(12.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
+
         Box(
             modifier = Modifier.fillMaxSize(),
-            contentAlignment = Alignment.Center // Wyśrodkowanie treści w Boxie
+            contentAlignment = Alignment.Center
         ) {
-            // 1. Miniatura mapy (tło)
-            Image(
-                painter = painterResource(id = R.drawable.ic_launcher_background), // Zmień na swoją miniaturę
-                contentDescription = "Map miniature",
-                contentScale = ContentScale.Crop, // Skalowanie obrazu, aby wypełnił przestrzeń
-                modifier = Modifier.fillMaxSize()
-            )
 
-            // --- Jeśli używasz Coil do ładowania z URL ---
-            /*
-            AsyncImage(
-                model = "https://example.com/your_map_thumbnail.jpg", // Zastąp URL-em miniatury mapy
-                contentDescription = "Miniatura mapy",
+            Image(
+                painter = painterResource(id = R.drawable.mapa),
+                contentDescription = "Map miniature",
                 contentScale = ContentScale.Crop,
                 modifier = Modifier.fillMaxSize()
             )
-            */
 
-            // 2. Przyciemnione tło (nakładka)
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(Color.Black.copy(alpha = 0.5f)) // Czarny kolor z przezroczystością 50%
+                    .background(Color.Black.copy(alpha = 0.25f))
             )
 
-            // 3. Napis na środku
-            Text(
-                text = "OPEN MAP",
-                color = Color.White,
-                fontSize = 20.sp,
-                modifier = Modifier.padding(16.dp)
-            )
+
         }
     }
 }

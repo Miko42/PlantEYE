@@ -24,56 +24,10 @@ class LibraryViewModel @Inject constructor(
     val mapScans: StateFlow<List<ScanItem>> = scanRepository.getMapScans()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
-    val allCategories: StateFlow<List<ScanCategory>> = scanRepository.getAllCategories()
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
-
-    private val _selectedScan = MutableStateFlow<ScanItem?>(null)
-    val selectedScan: StateFlow<ScanItem?> = _selectedScan
-
-    fun loadScanById(id: Int) {
-        viewModelScope.launch {
-            _selectedScan.value = scanRepository.getScanById(id)
-        }
-    }
-
-    fun insertScan(scanItem: ScanItem) {
-        viewModelScope.launch {
-            scanRepository.insertScan(scanItem)
-        }
-    }
-
-    fun updateScan(scanItem: ScanItem) {
-        viewModelScope.launch {
-            scanRepository.updateScan(scanItem)
-        }
-    }
-
     fun deleteScan(scanItem: ScanItem) {
         viewModelScope.launch {
             scanRepository.deleteScan(scanItem)
         }
     }
 
-    fun insertCategory(category: ScanCategory) {
-        viewModelScope.launch {
-            scanRepository.insertCategory(category)
-        }
-    }
-
-    fun updateCategory(category: ScanCategory) {
-        viewModelScope.launch {
-            scanRepository.updateCategory(category)
-        }
-    }
-
-    fun deleteCategory(category: ScanCategory) {
-        viewModelScope.launch {
-            scanRepository.deleteCategory(category)
-        }
-    }
-
-    fun getScansByCategory(categoryId: Int): StateFlow<List<ScanItem>> {
-        return scanRepository.getScansByCategory(categoryId)
-            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
-    }
 }
