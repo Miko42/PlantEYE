@@ -14,15 +14,18 @@ import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
 import org.json.JSONObject
 import mp.apk.BuildConfig
+import java.util.Locale
 
 
 object PlantIdentificationService {
     private const val TAG = "PlantIdentification"
     private val detailsList = listOf("description", "common_names", "url").joinToString(",")
-    private val apiUrl = "https://plant.id/api/v3/identification?details=$detailsList&language=pl"
+
 
     suspend fun identifyPlant(uri: Uri, context: Context, location: Pair<Double, Double>?): PlantIdentificationResponse? = withContext(Dispatchers.IO) {
         Log.d(TAG, "Rozpoczęcie identyfikacji rośliny")
+        val languageCode = Locale.getDefault().language
+        val apiUrl = "https://plant.id/api/v3/identification?details=$detailsList&language=$languageCode"
 
         val client = OkHttpClient()
         val base64Image = uriToBase64(uri, context)

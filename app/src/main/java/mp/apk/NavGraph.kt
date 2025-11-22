@@ -27,8 +27,8 @@ import mp.apk.viewmodel.ScanViewModel
 @Composable
 fun NavGraph(navController: NavHostController) {
     val items = listOf(
-        BottomNavItem("Library", Icons.AutoMirrored.Filled.LibraryBooks, "library"),
-        BottomNavItem("Scan", Icons.Default.Camera, "scan")
+        BottomNavItem(R.string.library, Icons.AutoMirrored.Filled.LibraryBooks, "library"),
+        BottomNavItem(R.string.scan, Icons.Default.Camera, "scan")
     )
 
     val navBackStackEntry = navController.currentBackStackEntryAsState()

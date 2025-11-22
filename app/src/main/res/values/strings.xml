@@ -1,3 +1,8 @@
 <resources>
     <string name="app_name">PlantEYE</string>
+    <string name="library">Library</string>
+    <string name="scan">Scan</string>
+    <string name="latin_name">Latin name</string>
+    <string name="scan_date">Scan date</string>
+
 </resources>

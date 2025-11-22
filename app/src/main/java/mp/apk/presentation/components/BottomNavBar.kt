@@ -7,9 +7,10 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
 
 data class BottomNavItem(
-    val label: String,
+    val label: Int,
     val icon: ImageVector,
     val route: String
 )
@@ -25,8 +26,8 @@ fun BottomNavBar(
             NavigationBarItem(
                 selected = currentRoute == item.route,
                 onClick = { onItemClick(item.route) },
-                icon = { Icon(imageVector = item.icon, contentDescription = item.label) },
-                label = { Text(item.label) }
+                icon = { Icon(imageVector = item.icon, contentDescription = stringResource(id = item.label)) },
+                label = { Text(stringResource(id = item.label)) }
             )
         }
     }
