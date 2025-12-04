@@ -8,10 +8,12 @@ Zaawansowana aplikacja mobilna na Androida, umożliwiająca rozpoznawanie rośli
 
 ## 📱 Przegląd Aplikacji
 
-Aplikacja pozwala użytkownikowi na zrobienie zdjęcia rośliny, otrzymanie natychmiastowej identyfikacji (wraz ze zdjęciami podobnymi) oraz zapisanie znaleziska w lokalnej bazie danych z oznaczeniem lokalizacji.
+Aplikacja pozwala użytkownikowi na zrobienie zdjęcia rośliny, otrzymanie natychmiastowej identyfikacji (wraz ze zdjęciami podobnymi), zapisanie znaleziska w lokalnej bazie danych, wyświetlanie zapisanych wyników w postaci listy lub mapy z lokalizacjami.
 
-https://github.com/user-attachments/assets/aaa89505-f5fd-4eea-b4b5-bb0dc3a67bb6
 
+
+
+https://github.com/user-attachments/assets/13674412-793a-4ab3-a545-a602552d3205
 
 
 
