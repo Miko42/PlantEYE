@@ -12,6 +12,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.gson.Gson
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -25,12 +26,15 @@ import java.util.Date
 import javax.inject.Inject
 import java.io.File
 import java.io.FileOutputStream
-
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.receiveAsFlow
+import mp.apk.R
 
 @HiltViewModel
 class ScanViewModel @Inject constructor(
     private val locationRepository: LocationRepository,
-    private val scanRepository: ScanRepository
+    private val scanRepository: ScanRepository,
+    @ApplicationContext private val context: Context
 ) : ViewModel() {
 
     private val _scanItem = MutableStateFlow<ScanItem?>(null)
@@ -48,6 +52,16 @@ class ScanViewModel @Inject constructor(
     private val _shouldNavigate = MutableStateFlow(false)
     val shouldNavigate: StateFlow<Boolean> = _shouldNavigate
 
+    private val _errorMessage = MutableStateFlow<String?>(null)
+    val errorMessage: StateFlow<String?> = _errorMessage.asStateFlow()
+
+    private val _uiEvent = Channel<UiEvent>()
+    val uiEvent = _uiEvent.receiveAsFlow()
+
+
+    sealed class UiEvent {
+        object ShowPhotoLimitReached : UiEvent()
+    }
     val selectedPhotoUri: String?
         get() = photoUris.value.firstOrNull()
 
@@ -56,10 +70,15 @@ fun onTakePhoto(uri: Uri, context: Context) {
         val savedPath = saveImageLocally(uri, context)
         savedPath?.let {
             val updatedList = _photoUris.value.toMutableList()
+
+
             if (updatedList.size < 3) {
                 _photoUris.value = updatedList + it
             } else {
                 Log.w("ScanViewModel", "Osiągnięto limit 3 zdjęć.")
+
+                _uiEvent.send(UiEvent.ShowPhotoLimitReached)
+                File(it).delete()
             }
         }
         fetchLocation()
@@ -138,17 +157,44 @@ fun onTakePhoto(uri: Uri, context: Context) {
         viewModelScope.launch {
             try {
                 val suggestion = response.result.classification.suggestions.firstOrNull() ?: return@launch
-                val plantName = suggestion.details.common_names?.firstOrNull()?.replaceFirstChar { it.uppercaseChar() }
-                    ?: suggestion.name
-                val latinName = suggestion.name
-                val description = suggestion?.details?.description?.value ?: "Description is not available"
-                val apiImages = suggestion.similar_images.map { it.url }
+
+                val isLowProbability = suggestion.probability < 0.5
+                val probabilityPercent = (suggestion.probability * 100).toInt()
+
+
+
+                val plantName = if (isLowProbability) {
+                    context.getString(R.string.plant_not_recognized_title)
+                } else {
+                    suggestion.details.common_names?.firstOrNull()?.replaceFirstChar { it.uppercaseChar() }
+                        ?: suggestion.name
+                }
+
+
+                val latinName = if (isLowProbability) {
+                    ""
+                } else {
+                    suggestion.name
+                }
+
+                val description = if (isLowProbability) {
+                    context.getString(R.string.low_probability_message, probabilityPercent)
+                } else {
+                    suggestion.details.description?.value ?: "Description is not available"
+                }
+
+                val apiImages = if (isLowProbability) {
+                    emptyList()
+                } else {
+                    suggestion.similar_images.map { it.url }
+                }
+
                 _similarImagesList.value = apiImages
 
                 val userImageUris = _photoUris.value
                 val locationData = _location.value
 
-                if (plantName.isNotBlank() && latinName.isNotBlank() && description.isNotBlank() && userImageUris.isNotEmpty()) {
+                if (plantName.isNotBlank() && userImageUris.isNotEmpty()) {
                     val scanItem = ScanItem(
                         scanDate = Date(),
                         userImages = userImageUris.map { it.toString() },

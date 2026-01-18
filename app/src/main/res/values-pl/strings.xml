@@ -1,0 +1,13 @@
+<resources>
+    <string name="app_name">PlantEYE</string>
+    <string name="library">Biblioteka</string>
+    <string name="scan">Skanuj</string>
+    <string name="latin_name">Nazwa łacińska</string>
+    <string name="scan_date">Data skanu</string>
+    <string name="gallery">Galeria</string>
+    <string name="take_photo">Zrób zdjęcie</string>
+    <string name="send">Wyślij</string>
+    <string name="photo_limit_reached">Osiągnięto limit zdjęć (maks. 3)</string>
+    <string name="plant_not_recognized_title">Nie rozpoznano rośliny</string>
+    <string name="low_probability_message">Prawdopodobieństwo rozpoznania jest zbyt niskie (%d%%), aby jednoznacznie określić gatunek. Spróbuj zrobić wyraźniejsze zdjęcie.</string>
+</resources>

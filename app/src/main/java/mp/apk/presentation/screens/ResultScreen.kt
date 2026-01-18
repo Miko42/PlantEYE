@@ -151,12 +151,14 @@ fun ResultScreen(
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            Text(
-                text = "${scanItem?.latinName}",
-                style = MaterialTheme.typography.bodyLarge,
-                fontStyle = FontStyle.Italic
-            )
-
+            if (!scanItem?.latinName.isNullOrEmpty()) {
+                Text(
+                    text = "${scanItem?.latinName}",
+                    style = MaterialTheme.typography.bodyLarge,
+                    fontStyle = FontStyle.Italic
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+            }
             Spacer(modifier = Modifier.height(8.dp))
 
             Text(
