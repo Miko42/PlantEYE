@@ -37,6 +37,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import mp.apk.presentation.components.ImagePreviewDialog
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.layout.fillMaxWidth
 
 @Composable
 fun ResultScreen(
@@ -48,6 +51,7 @@ fun ResultScreen(
     val scanItem by viewModel.scanItem.collectAsState()
     var selectedImageIndex by remember { mutableStateOf<Int?>(null) }
     var selectedImageSource by remember { mutableStateOf<String?>(null) }
+    val isSaved by viewModel.isSaved.collectAsState()
 
     if (selectedImageIndex != null && selectedImageSource != null) {
         val selectedList = when (selectedImageSource) {
@@ -94,20 +98,21 @@ fun ResultScreen(
     }
     Scaffold(
         floatingActionButton = {
-            FloatingActionButton(
-                onClick = {
-                    viewModel.saveParsedScanItem()
-                },
-                shape = RoundedCornerShape(16),
-                elevation = FloatingActionButtonDefaults.elevation(0.dp),
-                modifier = Modifier
-                    .size(48.dp)
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Save,
-                    tint = Color.Black,
-                    contentDescription = "Save note"
-                )
+            if (scanId == null && !isSaved) {
+                FloatingActionButton(
+                    onClick = {
+                        viewModel.saveParsedScanItem()
+                    },
+                    shape = RoundedCornerShape(16),
+                    elevation = FloatingActionButtonDefaults.elevation(0.dp),
+                    modifier = Modifier.size(48.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Save,
+                        tint = Color.Black,
+                        contentDescription = "Save note"
+                    )
+                }
             }
 
         },
@@ -116,6 +121,7 @@ fun ResultScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
+                .verticalScroll(rememberScrollState())
                 .padding(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
@@ -169,7 +175,7 @@ fun ResultScreen(
             Spacer(modifier = Modifier.height(8.dp))
             LazyRow (
                 modifier = Modifier
-                    .fillMaxSize()
+                    .fillMaxWidth()
                     .padding(horizontal = 0.dp)
             ){
                 itemsIndexed(similarImages) {index, imageUrl ->

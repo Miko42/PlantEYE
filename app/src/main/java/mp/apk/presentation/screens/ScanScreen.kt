@@ -66,6 +66,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import kotlinx.coroutines.flow.collectLatest
 import mp.apk.R
+import mp.apk.utils.MockUtils.getMockImageUri
 
 @Composable
 fun ScanScreen(viewModel: ScanViewModel, navController: NavController) {
@@ -80,6 +81,20 @@ fun ScanScreen(viewModel: ScanViewModel, navController: NavController) {
 
     LaunchedEffect(Unit) {
         viewModel.clearPhotos()
+        if (mp.apk.BuildConfig.FLAVOR == "mock") {
+            val mockUri1 = mp.apk.utils.MockUtils.getMockImageUri(
+                context,
+                R.drawable.sample_plant,
+                "mock_image_1.jpg"
+            )
+            viewModel.onTakePhoto(mockUri1, context)
+            val mockUri2 = mp.apk.utils.MockUtils.getMockImageUri(
+                context,
+                R.drawable.sample_plant_2,
+                "mock_image_2.jpg"
+            )
+            viewModel.onTakePhoto(mockUri2, context)
+        }
     }
 
     LaunchedEffect(key1 = true) {
@@ -87,6 +102,13 @@ fun ScanScreen(viewModel: ScanViewModel, navController: NavController) {
             when (event) {
                 is ScanViewModel.UiEvent.ShowPhotoLimitReached -> {
                     val message = context.getString(mp.apk.R.string.photo_limit_reached)
+                    snackbarHostState.showSnackbar(
+                        message = message,
+                        withDismissAction = true
+                    )
+                }
+                is ScanViewModel.UiEvent.ShowNoPhotoSelected -> {
+                    val message = context.getString(mp.apk.R.string.no_photo)
                     snackbarHostState.showSnackbar(
                         message = message,
                         withDismissAction = true

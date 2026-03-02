@@ -8,6 +8,7 @@
     <string name="take_photo">Zrób zdjęcie</string>
     <string name="send">Wyślij</string>
     <string name="photo_limit_reached">Osiągnięto limit zdjęć (maks. 3)</string>
+    <string name="no_photo">Zrób lub wybierz zdjęcie do identyfikacji.</string>
     <string name="plant_not_recognized_title">Nie rozpoznano rośliny</string>
     <string name="low_probability_message">Prawdopodobieństwo rozpoznania jest zbyt niskie (%d%%), aby jednoznacznie określić gatunek. Spróbuj zrobić wyraźniejsze zdjęcie.</string>
 </resources>

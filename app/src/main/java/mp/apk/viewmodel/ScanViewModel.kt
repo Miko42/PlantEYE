@@ -1,8 +1,6 @@
 package mp.apk.viewmodel
 
 import android.content.Context
-import android.graphics.Bitmap
-import android.graphics.BitmapFactory
 import android.location.Location
 import android.net.Uri
 import android.util.Log
@@ -10,25 +8,27 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.google.gson.Gson
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 import mp.apk.PlantIdentificationService
-import mp.apk.data.LocationRepository
+import mp.apk.R
 import mp.apk.data.entity.ScanItem
 import mp.apk.data.model.PlantIdentificationResponse
+import mp.apk.data.repository.LocationRepository
 import mp.apk.data.repository.ScanRepository
-import java.util.Date
-import javax.inject.Inject
 import java.io.File
 import java.io.FileOutputStream
-import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.flow.receiveAsFlow
-import mp.apk.R
+import java.util.Date
+import javax.inject.Inject
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import java.net.URL
 
 @HiltViewModel
 class ScanViewModel @Inject constructor(
@@ -58,9 +58,13 @@ class ScanViewModel @Inject constructor(
     private val _uiEvent = Channel<UiEvent>()
     val uiEvent = _uiEvent.receiveAsFlow()
 
+    private val _isSaved = MutableStateFlow(false)
+    val isSaved: StateFlow<Boolean> = _isSaved.asStateFlow()
+
 
     sealed class UiEvent {
         object ShowPhotoLimitReached : UiEvent()
+        object ShowNoPhotoSelected : UiEvent()
     }
     val selectedPhotoUri: String?
         get() = photoUris.value.firstOrNull()
@@ -128,6 +132,9 @@ fun onTakePhoto(uri: Uri, context: Context) {
         val path = selectedPhotoUri
         if (path == null) {
             Log.e("IdentifyPlant", "Brak wybranego zdjęcia!")
+            viewModelScope.launch {
+                _uiEvent.send(UiEvent.ShowNoPhotoSelected)
+            }
             return
         }
 
@@ -186,12 +193,41 @@ fun onTakePhoto(uri: Uri, context: Context) {
                 val apiImages = if (isLowProbability) {
                     emptyList()
                 } else {
-                    suggestion.similar_images.map { it.url }
+                    val urls = suggestion.similar_images.map { it.url }
+
+                    urls.mapNotNull { url ->
+                        downloadAndSaveApiImage(url)
+                    }
                 }
 
                 _similarImagesList.value = apiImages
 
-                val userImageUris = _photoUris.value
+                val userImageUris = if (mp.apk.BuildConfig.FLAVOR == "mock") {
+                    val currentPhotos = _photoUris.value
+
+                    if (currentPhotos.size > 2) {
+                        val photosToDelete = currentPhotos.drop(2)
+
+                        photosToDelete.forEach { path ->
+                            try {
+                                val file = java.io.File(path)
+                                if (file.exists()) {
+                                    val deleted = file.delete()
+                                    if (deleted) {
+                                        Log.d("ScanViewModel", "Usunięto nadmiarowe zdjęcie z dysku: ${file.name}")
+                                    }
+                                }
+                            } catch (e: Exception) {
+                                Log.e("ScanViewModel", "Błąd podczas usuwania nadmiarowego zdjęcia", e)
+                            }
+                        }
+                    }
+                    currentPhotos.take(2)
+                } else {
+                    _photoUris.value
+                }
+                _photoUris.value = userImageUris
+
                 val locationData = _location.value
 
                 if (plantName.isNotBlank() && userImageUris.isNotEmpty()) {
@@ -209,6 +245,7 @@ fun onTakePhoto(uri: Uri, context: Context) {
                         categoryId = null
                     )
                     _scanItem.value = scanItem
+                    _isSaved.value = false
                 } else {
                     Log.w("ScanViewModel", "Brakuje wymaganych danych do stworzenia ScanItem.")
                 }
@@ -220,8 +257,14 @@ fun onTakePhoto(uri: Uri, context: Context) {
 
 
     fun saveParsedScanItem() {
+        if (_isSaved.value) {
+            Log.d("ScanViewModel", "Ten ScanItem został już zapisany.")
+            return
+        }
+
         _scanItem.value?.let {
             insertScan(it)
+            _isSaved.value = true
             Log.d("ScanViewModel", "ScanItem zapisany do bazy danych.")
         } ?: Log.w("ScanViewModel", "ScanItem jest pusty – nie można zapisać.")
     }
@@ -244,4 +287,34 @@ fun onTakePhoto(uri: Uri, context: Context) {
     fun clearPhotos() {
         _photoUris.value = emptyList()
     }
+
+
+    private suspend fun downloadAndSaveApiImage(imageUrl: String): String? = withContext(Dispatchers.IO) {
+        if (imageUrl.startsWith("android.resource://")) {
+            return@withContext imageUrl
+        }
+
+        return@withContext try {
+
+            val imagesDir = File(context.filesDir, "api_images")
+            if (!imagesDir.exists()) imagesDir.mkdirs()
+
+            val fileName = "api_photo_${System.currentTimeMillis()}_${imageUrl.hashCode()}.jpg"
+            val file = File(imagesDir, fileName)
+
+            URL(imageUrl).openStream().use { input ->
+                FileOutputStream(file).use { output ->
+                    input.copyTo(output)
+                }
+            }
+
+            Log.d("ScanViewModel", "Zapisano pobrane zdjęcie API: ${file.absolutePath}")
+            file.absolutePath
+        } catch (e: Exception) {
+            Log.e("ScanViewModel", "Błąd pobierania zdjęcia z API: $imageUrl", e)
+            null
+        }
+    }
 }
+
+

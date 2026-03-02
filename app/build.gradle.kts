@@ -23,6 +23,7 @@ android {
     namespace = "mp.apk"
     compileSdk = 35
     buildToolsVersion = "34.0.0"
+    flavorDimensions += "environment"
 
     defaultConfig {
         applicationId = "mp.apk"
@@ -58,6 +59,17 @@ android {
     }
     composeOptions {
         kotlinCompilerExtensionVersion = "1.5.15"
+    }
+
+    productFlavors {
+        create("mock") {
+            dimension = "environment"
+            applicationIdSuffix = ".mock"
+            versionNameSuffix = "-mock"
+        }
+        create("prod") {
+            dimension = "environment"
+        }
     }
 }
 

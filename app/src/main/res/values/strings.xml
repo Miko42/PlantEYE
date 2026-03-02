@@ -8,6 +8,7 @@
     <string name="take_photo">Take photo</string>
     <string name="send">Send</string>
     <string name="photo_limit_reached">Photo limit reached (max 3)</string>
+    <string name="no_photo">Take or select a photo for identification.</string>
     <string name="plant_not_recognized_title">Plant not recognized</string>
     <string name="low_probability_message">Identification probability is too low (%d%%) to clearly determine the species. Try taking a clearer photo.</string>
 
